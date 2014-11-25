@@ -1,0 +1,318 @@
+---
+title: "Analysis of Variance"
+author: "Gaëlle Cordier"
+date: "24/11/2014"
+output: pdf_document
+---
+
+```{r load_libraries,echo=FALSE,message=FALSE}
+library(reshape2)
+library(doBy)
+library(ggplot2)
+library(gridExtra)
+library(gtable)
+```
+
+ANOVA compares (two or more) means by comparing variances; one-Way ANOVA compares (two or more) means based on one factor by comparing variances.
+
+Data example: crop yields per unit area measured from 10 randomly selected fields on each of 3 soil types (sand, clay, and loam) 
+
+```{r data_yields}
+yields<-data.frame(sand=c(6,10,8,6,14,17,9,11,7,11),
+                   clay=c(17,15,3,11,14,12,12,8,10,13),
+                   loam=c(13,16,9,12,15,16,17,13,18,14))
+yields
+```
+
+We may want to know whether soil types (categorical explanatory variable or factor) significantly affects crop yield (numerical respone variable):
+
+$H_0: \mu_s = \mu_c = \mu_l$
+
+$H_1: \text{at least one mean is different}$
+
+If we take a look at the sample means:
+
+```{r reshape_data}
+yields_l<-melt(data = yields,
+               value.name = "yield",
+               measure.vars = c("sand","clay","loam"),
+               variable.name = c("soil"))
+
+head(yields_l); tail(yields_l)
+```
+
+```{r soil_means}
+means<-summaryBy(formula = yield~soil,data = yields_l,FUN = mean)
+means
+# or:
+# aggregate(yield~soil, yields_l, mean)
+```
+
+and at the distribution of the yield values within the 3 soils:
+
+```{r plot_soils}
+ggplot(data = yields_l,aes(x = soil,y = yield, color = soil))+
+    geom_boxplot()+
+    stat_summary(fun.y=mean, geom="point", shape=4)+
+    labs(x="")+
+    scale_color_discrete(guide=F)
+```
+
+we can see that yield may turn out to be significantly different between sand and loam soils (their boxes don't overlap), but it is not as clear whether clay yield will be significantly greater/lower than sand/loam yield.
+
+How does ANOVA allows us to make inferences about differences between means by looking at differences between variances?
+
+### Deviation (variability) and variance:
+
+The distance from any point in a collection of data, to the mean of the data (sample mean), is the deviation. This can be written as:
+
+$y_i-\overline{y}$
+
+where $y_i$ is the *ith* data point, and $\overline{y}$ is the estimate of the mean. If all such deviations are squared (so all differences are positives), and then summed, as in:
+
+$\sum_{i=1}^n\left(y_i-\overline{y}\,\right)^2$
+
+this gives the "sum of squares" for these data.
+
+The deviation is unscaled (the sum of squares will grow with the size of the data collection), so to compare samples of different sizes we need to scale it by dividing it by the degrees of freedom (the number of parameters of the system that may vary independently, or to simplify, the sample size minus 1). In fact, the sample variance of a discrete random variable is defined as:
+
+$S^2=\frac{\sum_{i=1}^{n}(y_i-\overline{y})^2}{n-1}$
+
+So, the deviation is an unscaled measure of dispersion (or variability), that when scaled for the number of degrees of freedom estimates the variance.
+
+### Partition of Sum of Squares:
+
+The analysis of variance involves calculating the total variation or variability in the response variable (yield in this case) and partitioning it into two components: the intra-groupal or unexplained variability (variability in each group due to unknown factors) and the inter-groupal or explained variability (variability due to the explanatory variable, soil in this case). This is called the partition of sum of squares, and it allows us to quantify the relative importance of each one of said sources of variability: in our case, if the factor soil has an effect over crop yield, we would expect the total variability to be explained in greater measure by the explained variability than by the unexplained variability:
+
+$\text{TOTAL VARIABILITY = EXPLAINED VARIABILITY + UNEXPLAINED VARIABILITY}$
+
+### Calculating the Sums of Squares
+
+**SSE**
+
+We can define the variability in the response variable within each group as:
+
+$\text{SSE}=\sum_{i=1}^{k}\sum_{i=j}^{n}(y_{ij}-\overline{y})^2$
+
+that is, the sum of squares of the differences between the observation *j* (*n=10* replicates) within each group and the mean of said group *i* (*k=3* factor levels). This would be the unexplained variation or residual variability (error sum of squares) since it is not explained by the differences between groups.
+
+```{r SSE}
+yields_l2<-data.frame(yields_l,mean=rep(means$yield.mean,each = 10))
+
+yields_l2
+
+SSE<-with(data = yields_l2,expr = sum((yield-mean)^2))
+
+SSE
+```
+
+**SSA**
+
+In a similar way, we can define the variability in the response variable between groups as:
+
+$\text{SSA}=\sum_{i=1}^{k}\sum_{i=j}^{n}(\overline{y_{i}}-\overline{\overline{y}})^2=n*\sum_{i=1}^{k}(\overline{y_{i}}-\overline{\overline{y}})^2$
+
+that is, the sum of squares of the differences between the individual treatment means *n x i* and the overall mean (the mean of all observations, or the mean of the group means). This would be the explained variability (the treatment sum of squares).
+
+```{r SSA}
+means
+
+SSA<-10*sum((means$yield.mean-mean(means$yield.mean))^2)
+
+SSA
+
+# or
+with(data = yields_l2,expr = sum((mean-mean(yields_l2$yield))^2))
+```
+
+**SST**
+
+The total variability (the total sum of squares) would be then:
+
+$\text{SST}=\sum_{i=1}^{k}\sum_{i=j}^{n}(y_{ij}-\overline{\overline{y}})^2$
+
+that is, the sum of squares of the differences between the observation *ij* and the overall mean.
+
+```{r SST}
+SST<-with(data = yields_l2,expr = sum((yield-mean(yield))^2))
+
+SST
+```
+
+**Plotting the variability**
+
+```{r SSE_plots}
+plotdata<-data.frame(yields_l2,ov.mean=rep(mean(means$yield.mean)),
+                     x=seq(from = 0,to = 30,length.out = nrow(yields_l2)))
+
+p1<-ggplot(data = plotdata,aes(x=x,y=yield,shape=soil,color=soil))+
+    geom_point(size=2)+
+    labs(x="",y="",title="Observations")
+
+p2<-ggplot(data = plotdata,aes(x=x,y=yield,shape=soil,color=soil))+
+    geom_point(size=2)+
+    geom_line(aes(y=mean))+
+    geom_linerange(aes(ymin=yield,ymax=mean))+
+    labs(x="",y="",title="SSE")
+
+p3<-ggplot(data = plotdata,aes(x=x,y=yield,shape=soil,color=soil))+
+    geom_point(size=2)+
+    geom_line(aes(y=mean),size=1)+
+    geom_abline(intercept=11.9,slope=0)+
+    geom_linerange(aes(ymin=mean,ymax=ov.mean))+
+    labs(x="",y="",title="SSA")
+
+p4<-ggplot(data = plotdata,aes(x=x,y=yield,shape=soil,color=soil))+
+    geom_point(size=2)+
+    geom_abline(intercept=11.9,slope=0)+
+    geom_linerange(aes(ymin=yield,ymax=ov.mean))+
+    labs(x="",y="",title="SST")
+
+legend<-gtable_filter(ggplot_gtable(ggplot_build(p1)), "guide-box")
+
+grid.arrange(arrangeGrob(p1 + theme(legend.position="none"), 
+                         p2 + theme(legend.position="none"),
+                         p3 + theme(legend.position="none"),
+                         p4 + theme(legend.position="none"), 
+                         nrow = 2,
+                         main = textGrob("Sums of Squares", vjust = 1),
+                         left = textGrob("Yield", rot = 90, vjust = 1)),
+             legend,
+             widths=unit.c(unit(1, "npc") - legend$width, legend$width),
+             nrow=1)
+```
+
+*(extraction of legend and grid.arrange with global Y-axis and common legend as seen [here](http://stackoverflow.com/questions/11076567/plot-a-legend-and-well-spaced-universal-y-axis-and-main-titles-in-grid-arrange))*
+
+**In conclusion**
+
+The total sum of squares is the sum of the treatment sum of squares and the error sum of squares:
+
+$SST = SSA + SSE$
+
+```{r check_SST}
+all.equal(SST,SSA+SSE)
+```
+
+So the difference between SST and SSE is the treatment sum of squares, SSA:
+
+$SSA = SST - SSE$
+
+This is the amount of the variation in yield that is explained by the differences between the treatment means.
+
+### Drawing the ANOVA table
+
+**Source of variation**
+
+- Explained variability: type of soil
+- Unexplained variability: error
+- Total variability
+
+```{r var_source}
+Source<-c("Soil type","Error","Total")
+```
+
+**Sum of squares**
+
+- SSA
+- SSE
+- SST
+
+```{r SS}
+SS<-c(SSA,SSE,SST)
+```
+
+**Degrees of freedom**
+
+The degrees of freedom are the number of parameters that may vary independently (the number of observations minus 1).
+
+- Treatment degrees of freedom: we are comparing 1 mean per soil type with the overall mean (3 parameters), so we have: $3-1=2$ degrees of freedom.
+
+- Error degrees of freedom: we are comparing 10 observations per soil type with the soil type mean (10 parameters by soil type), so we have: $(10-1)*3=9*3=27$ degrees of freedom.
+
+- Total degrees of freedom: we are comparing 30 observations with the overall mean (30 parameters), so we have: $30-1=29$ degrees of freedom.
+
+```{r df}
+df<-c(2,27,29)
+```
+
+**Mean square**
+
+The mean square is obtained by divinding the sum of squares by the degrees of freedom, and is a measure of the treatment variance and the error variance:
+
+```{r MS}
+MS<-SS/df
+```
+
+The treatment variance is the mean square between groups ($MS_B$):
+
+```{r MS_B}
+MS_B<-MS[1]
+MS_B
+```
+
+The error variance is the mean square within groups ($MS_W$), and since there is equal replication in each soil type, it is equal to the mean of the variances of the soil types:
+
+```{r MS_W}
+MS_W<-MS[2]
+MS_W
+vars<-aggregate(yield~soil, yields_l, var)
+vars
+mean(vars$yield)
+```
+
+The total variance is the total mean square, and it is equal to the variance of all the observations:
+
+```{r}
+MS_T<-MS[3]
+MS_T
+sum((yields_l2$yield-11.9)^2)/29
+# or
+var(yields_l2$yield)
+```
+
+**F ratio and p-value**
+
+$F=\frac{MS_B}{MS_W}$
+
+The *F* ratio tests the null hypothesis that the treatment means are all the same:
+
+$H_0: \mu_s = \mu_c = \mu_l$
+
+$H_1: \text{at least one mean is significantly different from the others}$
+
+If the null hypothesis isn't true, we would expect the $MS_B$ to be greater than the $MS_W$, so we expect the F-ratio to be > 1. On the contrary, if the null hypothesis is true, we expect the F-ratio to have a value close to 1.
+
+```{r F_ratio}
+FR<-MS_B/MS_W
+FR
+```
+
+Is this value (> 1) significant? To answer this question we must compare the test statistic F=4.24 with the critical value of F, that is, the quantile of the probability distribution given the degrees of freedom of the numerator (df=2) and the denominator (df=27), for a given probability (0.95 if $\alpha=0.05$):
+
+```{r qf}
+qf(p = 0.95,df1 = 2,df2 = 27)
+```
+
+As F > critical value, we would reject the null hypothesis. In order to be able to work independently of the confidence interval, we use the cumulative distribution, that is, we look for the probability of being greater than our quantile (that would be the inverse of the cumulative distribution $P(x<=X)$):
+
+```{r pf}
+p_value<-1-pf(q = FR,df1 = 2,df2 = 27)
+p_value
+```
+
+This is the p-value, that is, the probability of being a value equal or greater than 4.24 when the null hypothesys is true; in this case, the probability of a value being equal or greater than 4.24 by chance would be 0.025 (25 times in 1000). If we are rejecting at a confidence level of 5% ($\alpha=0.05$), we would reject the null hypothesis since $p-value < \alpha$.
+
+**ANOVA table**
+
+```{r AOV_table}
+AOV.table<-data.frame(Source,SS,df,MS,FR,p_value)
+AOV.table
+```
+
+This can be done with:
+
+```{r AOV_summary}
+yields.aov<-with(yields_l,aov(formula = yield~soil))
+summary(yields.aov)
+```
