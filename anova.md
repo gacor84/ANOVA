@@ -8,6 +8,12 @@ output: html_document
 ---
 
 
+```r
+library(knitr)
+opts_chunk$set(fig.path = "./figures/") # Set figures path
+```
+
+
 
 ANOVA compares (two or more) means by comparing variances; one-Way ANOVA compares (two or more) means based on one factor by comparing variances.
 
@@ -102,7 +108,7 @@ ggplot(data = yields_l,aes(x = soil,y = yield, color = soil))+
     scale_color_discrete(guide=F)
 ```
 
-![plot of chunk plot_soils](figure/plot_soils-1.png) 
+![plot of chunk plot_soils](./figures/plot_soils-1.png) 
 
 we can see that yield may turn out to be significantly different between sand and loam soils (their boxes don't overlap), but it is not as clear whether clay yield will be significantly greater/lower than sand/loam yield.
 
@@ -307,7 +313,7 @@ grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
              nrow=1)
 ```
 
-![plot of chunk SSE_plots](figure/SSE_plots-1.png) 
+![plot of chunk SSE_plots](./figures/SSE_plots-1.png) 
 
 *(extraction of legend and grid.arrange with global Y-axis and common legend as seen [here](http://stackoverflow.com/questions/11076567/plot-a-legend-and-well-spaced-universal-y-axis-and-main-titles-in-grid-arrange))*
 

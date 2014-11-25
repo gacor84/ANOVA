@@ -7,6 +7,11 @@ output: html_document
 
 ---
 
+```{r figures_path}
+library(knitr)
+opts_chunk$set(fig.path = "./figures/") # Set figures path
+```
+
 ```{r load_libraries,echo=FALSE,message=FALSE}
 library(reshape2)
 library(doBy)
