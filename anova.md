@@ -43,12 +43,13 @@ $H_0: \mu_s = \mu_c = \mu_l$
 
 $H_1: \text{at least one mean is different}$
 
-# Test yield normality and yield~soils variance homogeneity (heterocedasticity)!
+## insert here yield normality test and yield~soils variance homogeneity test (heterocedasticity)
 
 If we take a look at the sample means:
 
 
 ```r
+# reshape data to long format
 yields_l<-melt(data = yields,
                value.name = "yield",
                measure.vars = c("sand","clay","loam"),
@@ -79,8 +80,8 @@ head(yields_l); tail(yields_l)
 
 
 ```r
-means<-summaryBy(formula = yield~soil,data = yields_l,FUN = mean)
-means
+# means
+means<-summaryBy(formula = yield~soil,data = yields_l,FUN = mean); means
 ```
 
 ```
@@ -92,7 +93,14 @@ means
 
 ```r
 # or:
-# aggregate(yield~soil, yields_l, mean)
+aggregate(yield~soil, yields_l, mean)
+```
+
+```
+##   soil yield
+## 1 sand   9.9
+## 2 clay  11.5
+## 3 loam  14.3
 ```
 
 and at the distribution of the yield values within the 3 soils:
@@ -154,8 +162,8 @@ that is, the sum of squares of the differences between the observation *j* (*n=1
 
 
 ```r
+# data with means
 yields_l2<-data.frame(yields_l,mean=rep(means$yield.mean,each = 10))
-
 yields_l2
 ```
 
@@ -211,33 +219,46 @@ In a similar way, we can define the variability in the response variable between
 
 $\text{SSA}=\sum_{i=1}^{k}\sum_{i=j}^{n}(\bar{y_{i}}-\bar{\bar{y}})^2=n*\sum_{i=1}^{k}(\bar{y_{i}}-\bar{\bar{y}})^2$
 
-that is, the sum of squares of the differences between the individual treatment means *n x i* and the overall mean (the mean of all observations, or the mean of the group means). This would be the explained variability (the treatment sum of squares).
+that is, the sum of squares of the differences between the individual treatment means *n x i* and the overall mean (the mean of all observations
 
 
 ```r
-means
+ov.mean<-with(yields_l2, mean(yield)); ov.mean
 ```
 
 ```
-##   soil yield.mean
-## 1 sand        9.9
-## 2 clay       11.5
-## 3 loam       14.3
+## [1] 11.9
 ```
+
+or the mean of the group means).
+
 
 ```r
-SSA<-10*sum((means$yield.mean-mean(means$yield.mean))^2)
+ov.mean<-with(means, mean(yield.mean)); ov.mean
+```
 
-SSA
+```
+## [1] 11.9
+```
+
+This would be the explained variability (the treatment sum of squares).
+
+$\text{SSA}=n*\sum_{i=1}^{k}(\bar{y_{i}}-\bar{\bar{y}})^2$
+
+
+```r
+SSA<-with(means, 10*sum((yield.mean-ov.mean)^2)); SSA
 ```
 
 ```
 ## [1] 99.2
 ```
 
+$\text{SSA}=\sum_{i=1}^{k}\sum_{i=j}^{n}(\bar{y_{i}}-\bar{\bar{y}})^2$
+
+
 ```r
-# or
-with(data = yields_l2,expr = sum((mean-mean(yields_l2$yield))^2))
+with(yields_l2, sum((mean-ov.mean)^2))
 ```
 
 ```
@@ -256,7 +277,7 @@ that is, the sum of squares of the differences between the observation *ij* and 
 
 
 ```r
-SST<-with(data = yields_l2,expr = sum((yield-mean(yield))^2))
+SST<-with(data = yields_l2,expr = sum((yield-ov.mean)^2))
 
 SST
 ```
@@ -272,7 +293,7 @@ $\\$
 
 ```r
 plotdata<-data.frame(yields_l2,
-                     ov.mean=rep(mean(means$yield.mean)),
+                     ov.mean, # no need to rep()
                      x=seq(from = 0,to = 30,length.out = nrow(yields_l2)))
 
 p1<-ggplot(data = plotdata,aes(x=x,y=yield,shape=soil,color=soil))+
@@ -411,7 +432,9 @@ MS_B
 ## [1] 49.6
 ```
 
-The error variance is the mean square error ($MSE$) or mean square within groups ($MS_W$), and since there is equal replication in each soil type, it is equal to the mean of the variances of the soil types:
+If the group means are equal ($H_0$ is true), $MS_B$ is an estimator of the population variance $\sigma^2$.
+
+The error variance or the mean square error ($MSE$) is the variance within groups (also $MS_W$), and it is equal to the mean of the variances of the soil types:
 
 
 ```r
@@ -424,8 +447,7 @@ MS_W
 ```
 
 ```r
-vars<-aggregate(yield~soil, yields_l, var)
-vars
+vars<-aggregate(yield~soil, yields_l, var); vars
 ```
 
 ```
@@ -443,7 +465,9 @@ mean(vars$yield)
 ## [1] 11.68519
 ```
 
-The total variance is the total mean square, and it is equal to the variance of all the observations:
+Since we assume homogeneity of variances, it is also an estimator of the population variance, whether the population means are equal or not.
+
+The total variance is the total mean square, and it is equal to the variance of all the observations with respect to the overall mean:
 
 
 ```r
@@ -456,7 +480,7 @@ MS_T
 ```
 
 ```r
-sum((yields_l2$yield-11.9)^2)/29
+with(yields_l2,sum((yield-ov.mean)^2)/29)
 ```
 
 ```
@@ -484,7 +508,15 @@ $H_0: \mu_s = \mu_c = \mu_l$
 
 $H_1: \text{at least one mean is significantly different from the others}$
 
-If the null hypothesis isn't true, we would expect the $MS_B$ to be greater than the $MS_W$, so we expect the F-ratio to be > 1. On the contrary, if the null hypothesis is true, we expect the F-ratio to have a value close to 1.
+If the null hypothesis isn't true, we would expect the variability between groups $MS_B$ to be greater than the variability within groups $MS_W$, so we would expect the F-ratio to be > 1. On the contrary, if the null hypothesis is true, we expect the F-ratio to have a value close to 1. 
+
+In terms of variance estimation:
+
+* If the population means are equal, then both $MSE$ and $MS_B$ are estimates of $\sigma^2$ and should therefore be about the same (they will not be exactly the same since they are just estimates and are based on different aspects of the data: the $MS_B$ is computed from the sample means and the $MSE$ is computed from the sample variances). 
+
+* If the population means are not equal, then $MSE$ will still estimate $\sigma^2$ because differences in population means do not affect variances. However, differences in population means affect $MSE$ since differences among population means are associated with differences among sample means. So, $MSE$ estimates $\sigma^2$ whether or not the population means are equal, but $MS_B$ doesn't if they are not.
+
+Therefore, if the $MS_B$ is much larger than the $MSE$, then the population means are unlikely to be equal, but if the $MS_B$ is about the same as $MSE$, then the data are consistent with the null hypothesis that the population means are equal. 
 
 
 ```r
@@ -496,9 +528,9 @@ FR
 ## [1] 4.244691
 ```
 
-Is this value (> 1) significant? To answer this we must compare the test statistic F=4.24 with the critical value of F, that is, the value in the distribution from which we would be rejecting the null hypothesis. This critical value is then the quantile of the probability distribution for a given probability (0.95 if $\alpha=0.05$), given the degrees of freedom of the numerator (df=2) and the denominator (df=27):
+Is this value significant (is $MS_B$ significantly greater than $MS_W$)? To answer this we must compare the test statistic $F=4.24$ with the critical value of $F$, that is, the value in the distribution from which we would be rejecting the null hypothesis. This critical value is the quantile of the probability distribution for a given probability ($0.95$ if $\alpha=0.05$) and degrees of freedom ($df=2$ for the numerator and $df=27$ for the denominator):
 
-$\text{formula quantile here}$
+$Q(p)\,=\,\inf\left\{ x\in \mathbb{R} : p \le F(x) \right\}$
 
 
 ```r
@@ -509,7 +541,9 @@ qf(p = 0.95,df1 = 2,df2 = 27)
 ## [1] 3.354131
 ```
 
-As the F-test > critical value, we would reject the null hypothesis. But in order to be able to work independently from the confidence interval, we must use the cumulative distribution, that is, we are looking for the probability of being equal or greater than our quantile; that would be the inverse of the cumulative distribution: 
+that is, the value $x$ in the $F(x)$ distribution for which the cumulative probability $p = 0.95$ (left tail of the distribution).
+
+As the F-test > critical value, we would reject the null hypothesis. But, in order to be able to work independently from the confidence interval, we use the function for cumulative probabilities of the $F$ distribution instead of using the function for quantiles, so what we are looking for now is the probability of being equal or greater than our quantile (right tail of the distribution); that would be the inverse of the cumulative distribution:
 
 $P(x \geq Ft) = 1 - P(x \leq Ft)$
 
@@ -523,26 +557,29 @@ p_value
 ## [1] 0.02495065
 ```
 
-This is the p-value, that is, the probability for a value of being equal or greater than 4.24 when the null hypothesys is true; in this case, the probability of a value being equal or greater than 4.24 by chance would be 0.025 (25 times in 1000). If we are rejecting at a confidence level of 5% ($\alpha=0.05$), we would reject the null hypothesis since $p-value < \alpha$.
+This is the **p-value**, that is, the probability for a value of being equal or greater than 4.24 when the null hypothesys is true; in this case, the probability of a value being equal or greater than 4.24 by chance would be 0.025 (25 times in 1000). If we are rejecting at a confidence level of 5% ($\alpha=0.05$), we would reject the null hypothesis since $p-value < \alpha$.
 
 $\\$
 
-**ANOVA table**
+**The ANOVA table**
 
 
 ```r
-AOV.table<-data.frame(Source,SS,df,MS,FR,p_value)
-AOV.table
+AOV.table<-data.frame(Source,SS,df,MS,
+                      FR=c(round(FR,3),"",""),
+                      p_value=c(round(p_value,3),"",""))
+kable(x = AOV.table,digits = 3)
 ```
 
-```
-##      Source    SS df       MS       FR    p_value
-## 1 Soil type  99.2  2 49.60000 4.244691 0.02495065
-## 2     Error 315.5 27 11.68519 4.244691 0.02495065
-## 3     Total 414.7 29 14.30000 4.244691 0.02495065
-```
 
-This can be done fitting our analysis of variance model with `aov`, and then calling the `summary`:
+
+|Source    |    SS| df|     MS|FR    |p_value |
+|:---------|-----:|--:|------:|:-----|:-------|
+|Soil type |  99.2|  2| 49.600|4.245 |0.025   |
+|Error     | 315.5| 27| 11.685|      |        |
+|Total     | 414.7| 29| 14.300|      |        |
+
+This can be done fitting our analysis-of-variance model with `aov`, and then calling the `summary`:
 
 
 ```r
@@ -564,7 +601,7 @@ $\\$
 
 We reject the $H_0: \mu_s = \mu_c = \mu_l \rightarrow$ there are significant differences between soil types (at least one mean is different).
 
-### 
+### The T-test
 
 The same ANOVA table can be drawn with the `anova` function after fitting the model with `lm`:
 
@@ -585,7 +622,7 @@ anova(yields.lm)
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-If we do the summary of the fit, we have:
+If we do the summary of the `lm` fit, we have:
 
 
 ```r
@@ -611,7 +648,7 @@ $\\$
 
 **Estimate**
 
-The estimate for Intercept is the mean of *soilsand*, the estimate for soilclay is the difference between the means of *soilclay* and *soilsand*, and the estimate for soilloam is the difference between the means of *soiloam* and *soilsand*:
+The estimate for Intercept is the mean of *soilsand*, the estimate for *soilclay* is the difference between the means of *soilclay* and *soilsand*, and the estimate for *soilloam* is the difference between the means of *soiloam* and *soilsand*:
 
 
 ```r
@@ -674,22 +711,43 @@ Its estimate $S$, the standard deviation of a sample, quantifies the deviation o
 
 $S = \sqrt{S^2} = \sqrt{\frac{\sum_{i=1}^{n}(y_i-\bar{y})^2}{n-1}}$
 
-The standard error of the mean, $SE_\text{mean}$, quantifies the deviation of a sample mean with respect to its true mean:
+The standard error of the mean, $SE_\text{mean}$, quantifies the deviation of several sample means (each one with sample size = *n*) with respect to its true mean:
 
 $SE_\text{mean} = \sqrt{\frac{S^2}{n}}$
 
-The standard error on the Intercept is the standard error of the sand soil mean, where the variance is the error variance (the $MSE$ or $MS_W$), and *n* is the number of observations or replications in that sample (group):
+Since the Intercept is a mean, the standard error associated is a **standard error of the mean**, where the variance $S^2$ is the error variance $MSE$ or $MS_W$ (remember, the mean of the variances of the soil types under the assumption of heterocedasticity), and *n* is the sample size of each group:
 
 $SE_\text{mean} = \sqrt{\frac{MS_W}{n}}$
 
 
 ```r
-sqrt(MS_W/10)
+SE_mean<-sqrt(MS_W/10)
+SE_mean
 ```
 
 ```
 ## [1] 1.08098
 ```
+
+```r
+sum.lm$coefficients[,2]
+```
+
+```
+## (Intercept)    soilclay    soilloam 
+##    1.080980    1.528737    1.528737
+```
+
+It is a measure of how accurate our estimate of the mean is likely to be, given the existing variability within groups, and it is equal for each one of the soil type means.
+
+The standard error of the difference between two means, $SE_\text{diff}$, quantifies the existing deviation in several differences between sample means:
+
+$SE_\text{diff}=S_{y_{1}y_{2}} \sqrt{\frac{2}{n}}$
+
+where the combined standard deviation:
+
+$S_{y_{1}y_{2}}=\sqrt{\frac{1}{2}(S_{y_{1}}^2+S_{y_{2}}^2)}$
+
 
 ```r
 sum.lm$coefficients
@@ -702,4 +760,116 @@ sum.lm$coefficients
 ## soilloam         4.4   1.528737 2.878193 7.728022e-03
 ```
 
-It is a measure of how accurate our estimate of the mean is likely to be, given the existing variability within groups.
+As the second and third row of the `lm.fit` summary are differences between means, the standard error associated is the **standard error of the difference between two means**, where the variance is again the error variance $S_{y_{1}}^2=S_{y_{2}}^2=MS_W$, and *n* is the number of observations in each group:
+
+$S_{y_{1}y_{2}}=\sqrt{\frac{1}{2}(2*MS_W)}$
+
+$SE_\text{diff}=\sqrt{\frac{1}{2}(2*MS_W)} \sqrt{\frac{2}{n}} = \sqrt{2*\frac{MS_W}{n}}$
+
+
+```r
+SE_diff<-sqrt(2*(MS_W/10))
+SE_diff
+```
+
+```
+## [1] 1.528737
+```
+
+```r
+sum.lm$coefficients[,2]
+```
+
+```
+## (Intercept)    soilclay    soilloam 
+##    1.080980    1.528737    1.528737
+```
+
+This is the standard error we need for doing a *t* test to compare any two means:
+
+$t = \frac{\text{a difference}}{\text{standard error of the difference}} \rightarrow t = \frac{\bar{y_{1}}-\bar{y_{2}}}{SE_{diff}}$ $(gl=2*(n-1)=2n-2)$
+
+$\\$
+
+**t-value**
+
+So, the t-value for each pair of soil means would be:
+
+$t_{clay-sand} = \frac{\bar{y}_{clay}-\bar{y}_{sand}}{SE_\text{diff}} = \frac{\text{Estimate}_{c}}{\text{Std. Error}}$
+
+
+```r
+Estimate<-as.numeric(sum.lm$coefficients[,1])
+Std.Error<-as.numeric(sum.lm$coefficients[,2])
+
+t_cs<-Estimate[2]/Std.Error[2]; t_cs
+```
+
+```
+## [1] 1.046616
+```
+
+```r
+# or
+with(means,yield.mean[2]-yield.mean[1])/SE_diff
+```
+
+```
+## [1] 1.046616
+```
+
+$t_{loam-sand} = \frac{\bar{y}_{loam}-\bar{y}_{sand}}{SE_\text{diff}} = \frac{\text{Estimate}_{l}}{\text{Std. Error}}$
+
+
+```r
+t_ls<-Estimate[3]/Std.Error[3]; t_ls
+```
+
+```
+## [1] 2.878193
+```
+
+```r
+# or
+with(means,yield.mean[3]-yield.mean[1])/SE_diff
+```
+
+```
+## [1] 2.878193
+```
+
+Note that $t_{loam-clay}$ does not appear on the table: 
+
+
+```r
+sum.lm$coefficients
+```
+
+```
+##             Estimate Std. Error  t value     Pr(>|t|)
+## (Intercept)      9.9   1.080980 9.158353 9.042094e-10
+## soilclay         1.6   1.528737 1.046616 3.045565e-01
+## soilloam         4.4   1.528737 2.878193 7.728022e-03
+```
+
+We have to calculate it by substracting their estimates (which equals substracting their means) since the differences on the summary table are all with respect to the Intercept:
+
+$t_{loam-clay} = \frac{\bar{y}_{loam}-\bar{y}_{clay}}{SE_\text{diff}} = \frac{\text{Estimate}_{l}-\text{Estimate}_{c}}{\text{Std. Error}}$
+
+
+```r
+t_lc<-(Estimate[3]-Estimate[2])/SE_diff; t_lc
+```
+
+```
+## [1] 1.831577
+```
+
+```r
+# or
+with(means,yield.mean[3]-yield.mean[2])/SE_diff
+```
+
+```
+## [1] 1.831577
+```
