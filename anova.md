@@ -10,7 +10,6 @@ output: html_document
 
 
 
-
 ANOVA compares (two or more) means by comparing variances; one-Way ANOVA compares (two or more) means based on one factor by comparing variances.
 
 Data example: crop yields per unit area measured from 10 randomly selected fields on each of 3 soil types (sand, clay, and loam) 
@@ -42,8 +41,6 @@ We may want to know whether soil types (categorical explanatory variable or fact
 $H_0: \mu_s = \mu_c = \mu_l$
 
 $H_1: \text{at least one mean is different}$
-
-## insert here yield normality test and yield~soils variance homogeneity test (heterocedasticity)
 
 If we take a look at the sample means:
 
@@ -118,7 +115,19 @@ ggplot(data = yields_l,aes(x = soil,y = yield, color = soil))+
 
 we can see that yield may turn out to be significantly different between sand and loam soils (their boxes don't overlap), but it is not as clear whether clay yield will be significantly greater/lower than sand/loam yield.
 
-How does ANOVA allows us to make inferences about differences between means by looking at differences between variances?
+ANOVA allows us to make inferences about differences between means by looking at differences between variances.
+
+### ANOVA assumptions:
+
+---
+
+* Normality of the response varirable (yield)
+
+* Heterocedasticity: homogeneity of variances between groups (soil types)
+
+**Test for normality**
+
+**Test for homocedasticity**
 
 ### Deviation (variability) and variance:
 
@@ -299,7 +308,7 @@ plotdata<-data.frame(yields_l2,
 p1<-ggplot(data = plotdata,aes(x=x,y=yield,shape=soil,color=soil))+
     geom_point(size=2)+
     labs(x="",y="",title="Observations")
-    # if we want to make legend horizontal:
+    # if we want to make the legend horizontal:
 #     guides(color=guide_legend(direction="horizontal",title.position="top",title.hjust=0.5),
 #            shape=guide_legend(direction="horizontal",title.position="top",title.hjust=0.5))
 
@@ -434,7 +443,7 @@ MS_B
 
 If the group means are equal ($H_0$ is true), $MS_B$ is an estimator of the population variance $\sigma^2$.
 
-The error variance or the mean square error ($MSE$) is the variance within groups (also $MS_W$), and it is equal to the mean of the variances of the soil types:
+The error variance or the mean square error ($MSE$) is the variance within groups (also $MS_W$), and since there is equal replication in each soil type, it is equal to the mean of the variances of the soil types:
 
 
 ```r
@@ -465,7 +474,7 @@ mean(vars$yield)
 ## [1] 11.68519
 ```
 
-Since we assume homogeneity of variances, it is also an estimator of the population variance, whether the population means are equal or not.
+Since we assume homogeneity of variances, it is also an estimator of the population variance, whether the population means are equal or not. This estimator is also called the *pooled variance* because it is calculated across all the treatments.
 
 The total variance is the total mean square, and it is equal to the variance of all the observations with respect to the overall mean:
 
@@ -701,7 +710,7 @@ means$yield.mean[3]-means$yield.mean[1]
 
 $\\$
 
-**Standard error**
+**Standard error** (mirar p.418-419 statistics principles and methods)
 
 The standard deviation of a population, $\sigma$ (the square root of the variance population, $\sigma^2$), quantifies the deviation of individuals with respect to the true (the population) mean, $\mu$:
 
@@ -715,7 +724,7 @@ The standard error of the mean, $SE_\text{mean}$, quantifies the deviation of se
 
 $SE_\text{mean} = \sqrt{\frac{S^2}{n}}$
 
-Since the Intercept is a mean, the standard error associated is a **standard error of the mean**, where the variance $S^2$ is the error variance $MSE$ or $MS_W$ (remember, the mean of the variances of the soil types under the assumption of heterocedasticity), and *n* is the sample size of each group:
+Since the Intercept is a mean, the standard error associated is the **standard error of the mean**, where the variance $S^2$ is the pooled variance, or error variance $MSE$, or variance within groups $MS_W$ (remember, the mean of the variances of the soil types under the assumption of heterocedasticity), and *n* is the sample size of each group:
 
 $SE_\text{mean} = \sqrt{\frac{MS_W}{n}}$
 
@@ -801,6 +810,7 @@ $t_{clay-sand} = \frac{\bar{y}_{clay}-\bar{y}_{sand}}{SE_\text{diff}} = \frac{\t
 ```r
 Estimate<-as.numeric(sum.lm$coefficients[,1])
 Std.Error<-as.numeric(sum.lm$coefficients[,2])
+t_value<-as.numeric(sum.lm$coefficients[,3])
 
 t_cs<-Estimate[2]/Std.Error[2]; t_cs
 ```
@@ -812,6 +822,14 @@ t_cs<-Estimate[2]/Std.Error[2]; t_cs
 ```r
 # or
 with(means,yield.mean[2]-yield.mean[1])/SE_diff
+```
+
+```
+## [1] 1.046616
+```
+
+```r
+t_value[2]
 ```
 
 ```
@@ -838,7 +856,15 @@ with(means,yield.mean[3]-yield.mean[1])/SE_diff
 ## [1] 2.878193
 ```
 
-Note that $t_{loam-clay}$ does not appear on the table: 
+```r
+t_value[3]
+```
+
+```
+## [1] 2.878193
+```
+
+Note that $t_{loam-clay}$ does not appear in the table: 
 
 
 ```r
@@ -873,3 +899,106 @@ with(means,yield.mean[3]-yield.mean[2])/SE_diff
 ```
 ## [1] 1.831577
 ```
+
+In order to know if the estimates of the differences between means with their associated standard error are significant, we look for the critical value for the $t$ distribution with $df=18$ and $p=1-\alpha/2=1-0.05/2=0.975$ (it's a two tailed test!):
+
+
+```r
+t_CV<-qt(0.975, 18); t_CV
+```
+
+```
+## [1] 2.100922
+```
+
+and we see if our *t* is greater than the critical value (if we reject the $H_0: \mu_1 = \mu_2$):
+
+
+```r
+t_cs>t_CV
+```
+
+```
+## [1] FALSE
+```
+
+```r
+t_ls>t_CV
+```
+
+```
+## [1] TRUE
+```
+
+```r
+t_lc>t_CV
+```
+
+```
+## [1] FALSE
+```
+
+$\rightarrow$ we would reject: $H_0: \mu_{\text{sand}} = \mu_{\text{loam}}$
+
+Or better, we look for the **p-value** associated with our *t* in the $t$ distribution (again, it's a two-tailed test so we multiply it by two):
+
+
+```r
+pv_cs<-2*(1-pt(t_cs,18)); pv_cs
+```
+
+```
+## [1] 0.3091286
+```
+
+```r
+pv_ls<-2*(1-pt(t_ls,18)); pv_ls
+```
+
+```
+## [1] 0.01000534
+```
+
+```r
+pv_lc<-2*(1-pt(t_lc,18)); pv_lc
+```
+
+```
+## [1] 0.08361664
+```
+
+and we see if the p-value is smaller than the confidence level $\alpha$ (if we reject the $H_0$):
+
+
+```r
+pv_cs<0.05 # not exactly equal in the table
+```
+
+```
+## [1] FALSE
+```
+
+```r
+pv_ls<0.05 # not exactly equal in the table (pv_ls<0.01)
+```
+
+```
+## [1] TRUE
+```
+
+```r
+pv_lc<0.05
+```
+
+```
+## [1] FALSE
+```
+
+$\rightarrow$ again we would reject: $H_0: \mu_{\text{sand}} = \mu_{\text{loam}}$
+
+We can see this graphically with a bar-plot:
+
+
+
+
+So why use ANOVA instead of t-test? $\rightarrow$ ANOVA can test more than one treatment (without taking more risk of making an error type I by doing a t-test for each pair of means), and also allows us to quantify the variability due to them.
