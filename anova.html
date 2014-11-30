@@ -60,6 +60,17 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </div>
 
 
+<p><span class="math">\(\\\)</span></p>
+<p><strong>References</strong>: <a name="refs"></a></p>
+<ul>
+<li><p>Main reference: The R Book - Chapter 11. Analysis of Variance</p></li>
+<li><p>Hyperlinks: links to wikipedia</p></li>
+<li><p>Other References:</p>
+<ul>
+<li><p>[<a href="http://onlinestatbook.com/2/analysis_of_variance/one-way.html">1</a>] One-Factor ANOVA (Between Subjects)</p></li>
+<li><p>[2] Statistics: Principles and Methods (6th Edition): <a href="#ref1">ref1</a></p></li>
+</ul></li>
+</ul>
 <hr />
 <p>ANOVA compares (two or more) means by comparing variances; one-Way ANOVA compares (two or more) means based on one factor by comparing variances.</p>
 <p>Data example: crop yields per unit area measured from 10 randomly selected fields on each of 3 soil types (sand, clay, and loam)</p>
@@ -135,7 +146,7 @@ aggregate(yield~soil, yields_l, mean)</code></pre>
 <p><strong>Test for homocedasticity</strong></p>
 </div>
 <div id="deviation-variability-and-variance" class="section level3">
-<h3>Deviation (variability) and variance:</h3>
+<h3><a href="http://en.wikipedia.org/wiki/Partition_of_sums_of_squares">Deviation (variability) and variance:</a></h3>
 <hr />
 <p>The distance from any point in a collection of data, to the mean of the data (sample mean), is the deviation. This can be written as:</p>
 <p><span class="math">\(y_i-\bar{y}\)</span></p>
@@ -302,7 +313,7 @@ grid.arrange(arrangeGrob(p1 + theme(legend.position=&quot;none&quot;),
 </ul>
 <pre class="r"><code>SS&lt;-c(SSA,SSE,SST)</code></pre>
 <p><span class="math">\(\\\)</span></p>
-<p><strong>Degrees of freedom</strong></p>
+<p><a href="http://en.wikipedia.org/wiki/Degrees_of_freedom_%28statistics%29"><strong>Degrees of freedom</strong></a></p>
 <p>The degrees of freedom are the number of parameters that may vary independently (the number of observations minus 1).</p>
 <ul>
 <li><p>Treatment degrees of freedom: we are comparing 1 mean per soil type with the overall mean (3 parameters), so we have:<br /><span class="math">\(3-1=2\)</span> degrees of freedom</p></li>
@@ -312,13 +323,13 @@ grid.arrange(arrangeGrob(p1 + theme(legend.position=&quot;none&quot;),
 <pre class="r"><code>df&lt;-c(2,27,29)</code></pre>
 <p><span class="math">\(\\\)</span></p>
 <p><strong>Mean square</strong></p>
-<p>The mean square is obtained by divinding the sum of squares by the degrees of freedom, and is a measure of the treatment variance and the error variance:</p>
+<p>The mean square is obtained by dividing the sum of squares by the degrees of freedom, and is a measure of the treatment variance and the error variance:</p>
 <pre class="r"><code>MS&lt;-SS/df</code></pre>
 <p>The treatment variance is the mean square between groups (<span class="math">\(MS_B\)</span>):</p>
 <pre class="r"><code>MS_B&lt;-MS[1]
 MS_B</code></pre>
 <pre><code>## [1] 49.6</code></pre>
-<p>If the group means are equal (<span class="math">\(H_0\)</span> is true), <span class="math">\(MS_B\)</span> is an estimator of the population variance <span class="math">\(\sigma^2\)</span>.</p>
+<p>If the group means are equal (<span class="math">\(H_0\)</span> is true), <span class="math">\(MS_B\)</span> is an estimator of the population variance <span class="math">\(\sigma^2\)</span> [<a href="http://onlinestatbook.com/2/analysis_of_variance/one-way.html">1</a>].</p>
 <p>The error variance or the mean square error (<span class="math">\(MSE\)</span>) is the variance within groups (also <span class="math">\(MS_W\)</span>), and since there is equal replication in each soil type, it is equal to the mean of the variances of the soil types:</p>
 <pre class="r"><code>MS_W&lt;-MS[2]
 MS_W</code></pre>
@@ -330,7 +341,7 @@ MS_W</code></pre>
 ## 3 loam  7.122222</code></pre>
 <pre class="r"><code>mean(vars$yield)</code></pre>
 <pre><code>## [1] 11.68519</code></pre>
-<p>Since we assume homogeneity of variances, it is also an estimator of the population variance, whether the population means are equal or not. This estimator is also called the <em>pooled variance</em> because it is calculated across all the treatments.</p>
+<p>Since we assume homogeneity of variances, it is also an estimator of the population variance [<a href="http://onlinestatbook.com/2/analysis_of_variance/one-way.html">1</a>], whether the population means are equal or not. This estimator is also called the <em>pooled variance</em> because it is calculated across all the treatments.</p>
 <p>The total variance is the total mean square, and it is equal to the variance of all the observations with respect to the overall mean:</p>
 <pre class="r"><code>MS_T&lt;-MS[3]
 MS_T</code></pre>
@@ -347,7 +358,7 @@ var(yields_l2$yield)</code></pre>
 <p><span class="math">\(H_0: \mu_s = \mu_c = \mu_l\)</span></p>
 <p><span class="math">\(H_1: \text{at least one mean is significantly different from the others}\)</span></p>
 <p>If the null hypothesis isn’t true, we would expect the variability between groups <span class="math">\(MS_B\)</span> to be greater than the variability within groups <span class="math">\(MS_W\)</span>, so we would expect the F-ratio to be &gt; 1. On the contrary, if the null hypothesis is true, we expect the F-ratio to have a value close to 1.</p>
-<p>In terms of variance estimation:</p>
+<p>In terms of variance estimation [<a href="http://onlinestatbook.com/2/analysis_of_variance/one-way.html">1</a>]:</p>
 <ul>
 <li><p>If the population means are equal, then both <span class="math">\(MSE\)</span> and <span class="math">\(MS_B\)</span> are estimates of <span class="math">\(\sigma^2\)</span> and should therefore be about the same (they will not be exactly the same since they are just estimates and are based on different aspects of the data: the <span class="math">\(MS_B\)</span> is computed from the sample means and the <span class="math">\(MSE\)</span> is computed from the sample variances).</p></li>
 <li><p>If the population means are not equal, then <span class="math">\(MSE\)</span> will still estimate <span class="math">\(\sigma^2\)</span> because differences in population means do not affect variances. However, differences in population means affect <span class="math">\(MSE\)</span> since differences among population means are associated with differences among sample means. So, <span class="math">\(MSE\)</span> estimates <span class="math">\(\sigma^2\)</span> whether or not the population means are equal, but <span class="math">\(MS_B\)</span> doesn’t if they are not.</p></li>
@@ -365,6 +376,9 @@ FR</code></pre>
 <p><span class="math">\(P(x \geq Ft) = 1 - P(x \leq Ft)\)</span></p>
 <pre class="r"><code>p_value&lt;-1-pf(q = FR,df1 = 2,df2 = 27)
 p_value</code></pre>
+<pre><code>## [1] 0.02495065</code></pre>
+<pre class="r"><code>#or
+pf(q = FR,df1 = 2,df2 = 27,lower.tail = F)</code></pre>
 <pre><code>## [1] 0.02495065</code></pre>
 <p>This is the <strong>p-value</strong>, that is, the probability for a value of being equal or greater than 4.24 when the null hypothesys is true; in this case, the probability of a value being equal or greater than 4.24 by chance would be 0.025 (25 times in 1000). If we are rejecting at a confidence level of 5% (<span class="math">\(\alpha=0.05\)</span>), we would reject the null hypothesis since <span class="math">\(p-value &lt; \alpha\)</span>.</p>
 <p><span class="math">\(\\\)</span></p>
@@ -471,23 +485,29 @@ means$yield.mean[2]-means$yield.mean[1]</code></pre>
 means$yield.mean[3]-means$yield.mean[1]</code></pre>
 <pre><code>## [1] 4.4</code></pre>
 <p><span class="math">\(\\\)</span></p>
-<p><strong>Standard error</strong> (mirar p.418-419 statistics principles and methods)</p>
+<p><a href="http://en.wikipedia.org/wiki/Standard_error"><strong>Standard error</strong></a></p>
 <p>The standard deviation of a population, <span class="math">\(\sigma\)</span> (the square root of the variance population, <span class="math">\(\sigma^2\)</span>), quantifies the deviation of individuals with respect to the true (the population) mean, <span class="math">\(\mu\)</span>:</p>
 <p><span class="math">\(\sigma = \sqrt{\sigma^2} = \sqrt{\frac{\sum_{i=1}^n (y_i - \mu)^2}{n}}, {\rm \ \ where\ \ } \mu = \frac{\sum_{i=1}^n y_i}{n}\)</span></p>
-<p>Its estimate <span class="math">\(S\)</span>, the standard deviation of a sample, quantifies the deviation of individuals with respect to the sample mean, <span class="math">\(\bar{y}\)</span>:</p>
+<p>Its estimator <span class="math">\(S\)</span>, the standard deviation of a sample, quantifies the deviation of individuals with respect to the sample mean, <span class="math">\(\bar{y}\)</span>:</p>
 <p><span class="math">\(S = \sqrt{S^2} = \sqrt{\frac{\sum_{i=1}^{n}(y_i-\bar{y})^2}{n-1}}\)</span></p>
-<p>The standard error of the mean, <span class="math">\(SE_\text{mean}\)</span>, quantifies the deviation of several sample means (each one with sample size = <em>n</em>) with respect to its true mean:</p>
-<p><span class="math">\(SE_\text{mean} = \sqrt{\frac{S^2}{n}}\)</span></p>
-<p>Since the Intercept is a mean, the standard error associated is the <strong>standard error of the mean</strong>, where the variance <span class="math">\(S^2\)</span> is the pooled variance, or error variance <span class="math">\(MSE\)</span>, or variance within groups <span class="math">\(MS_W\)</span> (remember, the mean of the variances of the soil types under the assumption of heterocedasticity), and <em>n</em> is the sample size of each group:</p>
+<p>The standard deviation of a point estimator is also called its standard error, so the standard error of the mean, <span class="math">\(SE_\text{mean}\)</span>, quantifies the deviation of a sample mean <span class="math">\(\bar{y}\)</span> with sample size = <em>n</em>, with respect to the true mean <span class="math">\(\mu\)</span>:</p>
+<p><a name="ref1"></a></p>
+<p>[<a href="#refs">2</a>] p. 299-301</p>
+<p><span class="math">\(E(\bar{y})=\mu\)</span></p>
+<p><span class="math">\(S(\bar{y})=\frac{\sigma}{\sqrt{n}} \rightarrow SE(\bar{y})=\frac{\sigma}{\sqrt{n}} \rightarrow \text{Estimated SE}(\bar{y})=\sqrt{\frac{S^2}{n}}\)</span></p>
+<p>Since the Intercept is a mean, the standard error associated is the <strong>standard error of the mean</strong>, where the variance <span class="math">\(S^2\)</span> here is the <a href="http://en.wikipedia.org/wiki/Student%27s_t-test#Independent_two-sample_t-test">common variance</a> or <a href="http://en.wikipedia.org/wiki/Pooled_variance">pooled variance</a> since we are considering that the variability comes from the existing variability within groups <span class="math">\(\rightarrow\)</span> this pooled variance is the error variance <span class="math">\(MSE\)</span>, or variance within groups <span class="math">\(MS_W\)</span> (remember, the mean of the variances of the soil types under the assumption of heterocedasticity):</p>
+<p><span class="math">\(S_{y_{1}y_{2}}=\sqrt{\frac{1}{2}(S_{y_{1}}^2+S_{y_{2}}^2)}\)</span></p>
+<p>So the standard error of the mean is:</p>
 <p><span class="math">\(SE_\text{mean} = \sqrt{\frac{MS_W}{n}}\)</span></p>
+<p>where <em>n</em> is the sample size of each group.</p>
 <pre class="r"><code>SE_mean&lt;-sqrt(MS_W/10)
 SE_mean</code></pre>
 <pre><code>## [1] 1.08098</code></pre>
 <pre class="r"><code>sum.lm$coefficients[,2]</code></pre>
 <pre><code>## (Intercept)    soilclay    soilloam 
 ##    1.080980    1.528737    1.528737</code></pre>
-<p>It is a measure of how accurate our estimate of the mean is likely to be, given the existing variability within groups, and it is equal for each one of the soil type means.</p>
-<p>The standard error of the difference between two means, <span class="math">\(SE_\text{diff}\)</span>, quantifies the existing deviation in several differences between sample means:</p>
+<p>It is a measure of how accurate our estimate of the mean is likely to be, given the existing variability within groups, and it is equal for each one of the soil type means since the number of replicates is equal.</p>
+<p>The standard error of the difference between two means, <span class="math">\(SE_\text{diff}\)</span>, quantifies the existing deviation in the difference between sample means:</p>
 <p><span class="math">\(SE_\text{diff}=S_{y_{1}y_{2}} \sqrt{\frac{2}{n}}\)</span></p>
 <p>where the combined standard deviation:</p>
 <p><span class="math">\(S_{y_{1}y_{2}}=\sqrt{\frac{1}{2}(S_{y_{1}}^2+S_{y_{2}}^2)}\)</span></p>
@@ -546,6 +566,9 @@ with(means,yield.mean[3]-yield.mean[2])/SE_diff</code></pre>
 <p>In order to know if the estimates of the differences between means with their associated standard error are significant, we look for the critical value for the <span class="math">\(t\)</span> distribution with <span class="math">\(df=18\)</span> and <span class="math">\(p=1-\alpha/2=1-0.05/2=0.975\)</span> (it’s a two tailed test!):</p>
 <pre class="r"><code>t_CV&lt;-qt(0.975, 18); t_CV</code></pre>
 <pre><code>## [1] 2.100922</code></pre>
+<pre class="r"><code># or:
+qt(0.025,18,lower.tail = F)</code></pre>
+<pre><code>## [1] 2.100922</code></pre>
 <p>and we see if our <em>t</em> is greater than the critical value (if we reject the <span class="math">\(H_0: \mu_1 = \mu_2\)</span>):</p>
 <pre class="r"><code>t_cs&gt;t_CV</code></pre>
 <pre><code>## [1] FALSE</code></pre>
@@ -557,9 +580,18 @@ with(means,yield.mean[3]-yield.mean[2])/SE_diff</code></pre>
 <p>Or better, we look for the <strong>p-value</strong> associated with our <em>t</em> in the <span class="math">\(t\)</span> distribution (again, it’s a two-tailed test so we multiply it by two):</p>
 <pre class="r"><code>pv_cs&lt;-2*(1-pt(t_cs,18)); pv_cs</code></pre>
 <pre><code>## [1] 0.3091286</code></pre>
+<pre class="r"><code># or:
+2*pt(t_cs,18,lower.tail = F)</code></pre>
+<pre><code>## [1] 0.3091286</code></pre>
 <pre class="r"><code>pv_ls&lt;-2*(1-pt(t_ls,18)); pv_ls</code></pre>
 <pre><code>## [1] 0.01000534</code></pre>
+<pre class="r"><code># or:
+2*pt(t_ls,18,lower.tail = F)</code></pre>
+<pre><code>## [1] 0.01000534</code></pre>
 <pre class="r"><code>pv_lc&lt;-2*(1-pt(t_lc,18)); pv_lc</code></pre>
+<pre><code>## [1] 0.08361664</code></pre>
+<pre class="r"><code># or:
+2*pt(t_lc,18,lower.tail = F)</code></pre>
 <pre><code>## [1] 0.08361664</code></pre>
 <p>and we see if the p-value is smaller than the confidence level <span class="math">\(\alpha\)</span> (if we reject the <span class="math">\(H_0\)</span>):</p>
 <pre class="r"><code>pv_cs&lt;0.05 # not exactly equal in the table</code></pre>

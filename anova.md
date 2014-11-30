@@ -5,6 +5,20 @@ date: "24/11/2014"
 output: html_document
 ---
 
+$\\$
+
+**References**: <a name=refs></a>
+
+* Main reference: The R Book - Chapter 11. Analysis of Variance
+
+* Hyperlinks: links to wikipedia
+
+* Other References:
+
+    + [[1](http://onlinestatbook.com/2/analysis_of_variance/one-way.html)] One-Factor ANOVA (Between Subjects)
+
+    + [2] Statistics: Principles and Methods (6th Edition): [ref1](#ref1)
+
 ---
 
 
@@ -129,7 +143,7 @@ ANOVA allows us to make inferences about differences between means by looking at
 
 **Test for homocedasticity**
 
-### Deviation (variability) and variance:
+### [Deviation (variability) and variance:](http://en.wikipedia.org/wiki/Partition_of_sums_of_squares)
 
 ---
 
@@ -400,7 +414,7 @@ SS<-c(SSA,SSE,SST)
 
 $\\$
 
-**Degrees of freedom**
+[**Degrees of freedom**](http://en.wikipedia.org/wiki/Degrees_of_freedom_%28statistics%29)
 
 The degrees of freedom are the number of parameters that may vary independently (the number of observations minus 1).
 
@@ -422,7 +436,7 @@ $\\$
 
 **Mean square**
 
-The mean square is obtained by divinding the sum of squares by the degrees of freedom, and is a measure of the treatment variance and the error variance:
+The mean square is obtained by dividing the sum of squares by the degrees of freedom, and is a measure of the treatment variance and the error variance:
 
 
 ```r
@@ -441,7 +455,7 @@ MS_B
 ## [1] 49.6
 ```
 
-If the group means are equal ($H_0$ is true), $MS_B$ is an estimator of the population variance $\sigma^2$.
+If the group means are equal ($H_0$ is true), $MS_B$ is an estimator of the population variance $\sigma^2$ [[1](http://onlinestatbook.com/2/analysis_of_variance/one-way.html)].
 
 The error variance or the mean square error ($MSE$) is the variance within groups (also $MS_W$), and since there is equal replication in each soil type, it is equal to the mean of the variances of the soil types:
 
@@ -474,7 +488,7 @@ mean(vars$yield)
 ## [1] 11.68519
 ```
 
-Since we assume homogeneity of variances, it is also an estimator of the population variance, whether the population means are equal or not. This estimator is also called the *pooled variance* because it is calculated across all the treatments.
+Since we assume homogeneity of variances, it is also an estimator of the population variance [[1](http://onlinestatbook.com/2/analysis_of_variance/one-way.html)], whether the population means are equal or not. This estimator is also called the *pooled variance* because it is calculated across all the treatments.
 
 The total variance is the total mean square, and it is equal to the variance of all the observations with respect to the overall mean:
 
@@ -519,7 +533,7 @@ $H_1: \text{at least one mean is significantly different from the others}$
 
 If the null hypothesis isn't true, we would expect the variability between groups $MS_B$ to be greater than the variability within groups $MS_W$, so we would expect the F-ratio to be > 1. On the contrary, if the null hypothesis is true, we expect the F-ratio to have a value close to 1. 
 
-In terms of variance estimation:
+In terms of variance estimation [[1](http://onlinestatbook.com/2/analysis_of_variance/one-way.html)]:
 
 * If the population means are equal, then both $MSE$ and $MS_B$ are estimates of $\sigma^2$ and should therefore be about the same (they will not be exactly the same since they are just estimates and are based on different aspects of the data: the $MS_B$ is computed from the sample means and the $MSE$ is computed from the sample variances). 
 
@@ -560,6 +574,15 @@ $P(x \geq Ft) = 1 - P(x \leq Ft)$
 ```r
 p_value<-1-pf(q = FR,df1 = 2,df2 = 27)
 p_value
+```
+
+```
+## [1] 0.02495065
+```
+
+```r
+#or
+pf(q = FR,df1 = 2,df2 = 27,lower.tail = F)
 ```
 
 ```
@@ -710,23 +733,35 @@ means$yield.mean[3]-means$yield.mean[1]
 
 $\\$
 
-**Standard error** (mirar p.418-419 statistics principles and methods)
+[**Standard error**](http://en.wikipedia.org/wiki/Standard_error)
 
 The standard deviation of a population, $\sigma$ (the square root of the variance population, $\sigma^2$), quantifies the deviation of individuals with respect to the true (the population) mean, $\mu$:
 
 $\sigma = \sqrt{\sigma^2} = \sqrt{\frac{\sum_{i=1}^n (y_i - \mu)^2}{n}}, {\rm \ \ where\ \ } \mu = \frac{\sum_{i=1}^n y_i}{n}$
 
-Its estimate $S$, the standard deviation of a sample, quantifies the deviation of individuals with respect to the sample mean, $\bar{y}$:
+Its estimator $S$, the standard deviation of a sample, quantifies the deviation of individuals with respect to the sample mean, $\bar{y}$:
 
 $S = \sqrt{S^2} = \sqrt{\frac{\sum_{i=1}^{n}(y_i-\bar{y})^2}{n-1}}$
 
-The standard error of the mean, $SE_\text{mean}$, quantifies the deviation of several sample means (each one with sample size = *n*) with respect to its true mean:
+The standard deviation of a point estimator is also called its standard error, so the standard error of the mean, $SE_\text{mean}$, quantifies the deviation of a sample mean $\bar{y}$ with sample size = *n*, with respect to the true mean $\mu$:
 
-$SE_\text{mean} = \sqrt{\frac{S^2}{n}}$
+<a name=ref1></a>
 
-Since the Intercept is a mean, the standard error associated is the **standard error of the mean**, where the variance $S^2$ is the pooled variance, or error variance $MSE$, or variance within groups $MS_W$ (remember, the mean of the variances of the soil types under the assumption of heterocedasticity), and *n* is the sample size of each group:
+[[2](#refs)] p. 299-301 
+
+$E(\bar{y})=\mu$
+
+$S(\bar{y})=\frac{\sigma}{\sqrt{n}} \rightarrow SE(\bar{y})=\frac{\sigma}{\sqrt{n}} \rightarrow \text{Estimated SE}(\bar{y})=\sqrt{\frac{S^2}{n}}$
+
+Since the Intercept is a mean, the standard error associated is the **standard error of the mean**, where the variance $S^2$ here is the [common variance](http://en.wikipedia.org/wiki/Student%27s_t-test#Independent_two-sample_t-test) or [pooled variance](http://en.wikipedia.org/wiki/Pooled_variance) since we are considering that the variability comes from the existing variability within groups $\rightarrow$ this pooled variance is the error variance $MSE$, or variance within groups $MS_W$ (remember, the mean of the variances of the soil types under the assumption of heterocedasticity):
+
+$S_{y_{1}y_{2}}=\sqrt{\frac{1}{2}(S_{y_{1}}^2+S_{y_{2}}^2)}$
+
+So the standard error of the mean is:
 
 $SE_\text{mean} = \sqrt{\frac{MS_W}{n}}$
+
+where *n* is the sample size of each group.
 
 
 ```r
@@ -747,9 +782,9 @@ sum.lm$coefficients[,2]
 ##    1.080980    1.528737    1.528737
 ```
 
-It is a measure of how accurate our estimate of the mean is likely to be, given the existing variability within groups, and it is equal for each one of the soil type means.
+It is a measure of how accurate our estimate of the mean is likely to be, given the existing variability within groups, and it is equal for each one of the soil type means since the number of replicates is equal.
 
-The standard error of the difference between two means, $SE_\text{diff}$, quantifies the existing deviation in several differences between sample means:
+The standard error of the difference between two means, $SE_\text{diff}$, quantifies the existing deviation in the difference between sample means:
 
 $SE_\text{diff}=S_{y_{1}y_{2}} \sqrt{\frac{2}{n}}$
 
@@ -911,6 +946,15 @@ t_CV<-qt(0.975, 18); t_CV
 ## [1] 2.100922
 ```
 
+```r
+# or:
+qt(0.025,18,lower.tail = F)
+```
+
+```
+## [1] 2.100922
+```
+
 and we see if our *t* is greater than the critical value (if we reject the $H_0: \mu_1 = \mu_2$):
 
 
@@ -952,6 +996,15 @@ pv_cs<-2*(1-pt(t_cs,18)); pv_cs
 ```
 
 ```r
+# or:
+2*pt(t_cs,18,lower.tail = F)
+```
+
+```
+## [1] 0.3091286
+```
+
+```r
 pv_ls<-2*(1-pt(t_ls,18)); pv_ls
 ```
 
@@ -960,7 +1013,25 @@ pv_ls<-2*(1-pt(t_ls,18)); pv_ls
 ```
 
 ```r
+# or:
+2*pt(t_ls,18,lower.tail = F)
+```
+
+```
+## [1] 0.01000534
+```
+
+```r
 pv_lc<-2*(1-pt(t_lc,18)); pv_lc
+```
+
+```
+## [1] 0.08361664
+```
+
+```r
+# or:
+2*pt(t_lc,18,lower.tail = F)
 ```
 
 ```
