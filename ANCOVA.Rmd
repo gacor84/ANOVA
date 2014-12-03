@@ -1,0 +1,7 @@
+---
+title: "ANCOVA"
+author: "Gaëlle Cordier"
+date: "01/12/2014"
+output: html_document
+---
+

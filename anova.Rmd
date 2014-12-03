@@ -90,8 +90,21 @@ ANOVA allows us to make inferences about differences between means by looking at
 * Normality of the response varirable (yield)
 
 * Heterocedasticity: homogeneity of variances between groups (soil types)
+$\\$
 
 **Test for normality**
+
+quantile-quantile plot (qqplot):
+
+```{r qplot_normality}
+with(yields_l,qqnorm(yield))
+with(yields_l,qqline(yield,lty=2))
+```
+
+
+Shapiro-Wilk normality test:
+
+
 
 **Test for homocedasticity**
 
