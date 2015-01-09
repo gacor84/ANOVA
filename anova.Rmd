@@ -634,11 +634,4 @@ pv_lc<0.05
 
 $\rightarrow$ again we would reject: $H_0: \mu_{\text{sand}} = \mu_{\text{loam}}$
 
-We can see this graphically with a bar-plot:
-
-```{r barplots}
-
-```
-
-
 So why use ANOVA instead of t-test? $\rightarrow$ ANOVA can test more than one treatment (without taking more risk of making an error type I by doing a t-test for each pair of means), and also allows us to quantify the variability due to them.

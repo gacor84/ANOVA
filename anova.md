@@ -138,8 +138,24 @@ ANOVA allows us to make inferences about differences between means by looking at
 * Normality of the response varirable (yield)
 
 * Heterocedasticity: homogeneity of variances between groups (soil types)
+$\\$
 
 **Test for normality**
+
+quantile-quantile plot (qqplot):
+
+
+```r
+with(yields_l,qqnorm(yield))
+with(yields_l,qqline(yield,lty=2))
+```
+
+![plot of chunk qplot_normality](figures/qplot_normality-1.png) 
+
+
+Shapiro-Wilk normality test:
+
+
 
 **Test for homocedasticity**
 
@@ -1066,10 +1082,5 @@ pv_lc<0.05
 ```
 
 $\rightarrow$ again we would reject: $H_0: \mu_{\text{sand}} = \mu_{\text{loam}}$
-
-We can see this graphically with a bar-plot:
-
-
-
 
 So why use ANOVA instead of t-test? $\rightarrow$ ANOVA can test more than one treatment (without taking more risk of making an error type I by doing a t-test for each pair of means), and also allows us to quantify the variability due to them.
